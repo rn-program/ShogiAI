@@ -1,0 +1,9 @@
+kivy
+numpy
+pybind11
+python-shogi
+requests
+selenium
+torch
+torchvision
+torchaudio
