@@ -1,16 +1,20 @@
-// state.hpp
 #pragma once
+
 #include "../core/Board.hpp"
-#include "../core/Player.hpp"
+#include <string>
 
-namespace mcts {
+namespace mcts
+{
 
-struct State {
-    shogi::Board board;
-    Player turn;
+    class State
+    {
+    public:
+        explicit State(const shogi::Board &board)
+            : board(board) {}
 
-    State(const shogi::Board& b)
-        : board(b), turn(b.turn) {}
-};
+        void apply(const std::string &usi);
+
+        shogi::Board board;
+    };
 
 } // namespace mcts

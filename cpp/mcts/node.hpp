@@ -2,21 +2,27 @@
 #pragma once
 #include <unordered_map>
 #include <memory>
-#include "state.hpp"
-#include "edge.hpp"
+#include <string>
 
 namespace mcts
 {
 
     struct Node
     {
-        State state;
-        int visits = 0;
-        bool expanded = false;
+        // MCTS statistics
+        int N = 0;      // visit count
+        double W = 0.0; // total value
+        double Q = 0.0; // mean value
+        double P = 0.0; // prior probability
 
-        std::unordered_map<std::string, std::unique_ptr<Edge>> edges;
+        // children: usi -> Node
+        std::unordered_map<std::string, std::unique_ptr<Node>> children;
 
-        explicit Node(const State &s) : state(s) {}
+        Node() = default;           // ★ 必須
+        explicit Node(double prior) // 子ノード用
+            : P(prior)
+        {
+        }
     };
 
 } // namespace mcts

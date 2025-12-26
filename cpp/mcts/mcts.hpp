@@ -1,24 +1,32 @@
-// mcts.hpp
 #pragma once
-#include "node.hpp"
+#include <string>
 #include "policy.hpp"
 #include "evaluator.hpp"
-#include "config.hpp"
+#include "state.hpp"
+#include "node.hpp"
 
-namespace mcts {
+namespace mcts
+{
 
-class MCTS {
-public:
-    MCTS(Evaluator& eval, Policy& policy, const Config& cfg);
+    class MCTS
+    {
+    public:
+        MCTS(
+            Policy &policy,
+            Evaluator &evaluator,
+            int simulations);
 
-    std::string search(const shogi::Board& board);
+        std::string search(const State &root_state);
 
-private:
-    double simulate(Node* node);
+    private:
+        double simulate(Node &node, State &state);
 
-    Evaluator& eval_;
-    Policy& policy_;
-    Config cfg_;
-};
+        Policy &policy_;
+        Evaluator &evaluator_;
+        int simulations_;
+
+        // ★ 追加
+        const double c_puct = 1.5;
+    };
 
 } // namespace mcts

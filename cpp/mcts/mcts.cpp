@@ -1,83 +1,103 @@
-// mcts.cpp
 #include "mcts.hpp"
-#include "evaluator.hpp"
+#include "node.hpp"
+
+#include <algorithm>
 #include <cmath>
+#include <limits>
 
 namespace mcts
 {
 
-    MCTS::MCTS(Evaluator &e, Policy &p, const Config &c)
-        : eval_(e), policy_(p), cfg_(c) {}
-
-    double MCTS::simulate(Node *node)
+    // =======================
+    // コンストラクタ
+    // =======================
+    MCTS::MCTS(
+        Policy &policy,
+        Evaluator &evaluator,
+        int simulations)
+        : policy_(policy),
+          evaluator_(evaluator),
+          simulations_(simulations)
     {
-        if (!node->expanded)
+    }
+
+    // =======================
+    // MCTS 探索（エントリポイント）
+    // =======================
+    std::string MCTS::search(const State &root_state)
+    {
+        Node root;
+
+        for (int i = 0; i < simulations_; ++i)
         {
-            auto eval = eval_.evaluate(node->state);
-            auto legal = policy_.legal_usis(node->state.board);
-            auto probs = policy_.masked_policy(eval.policy, legal);
+            State state = root_state;
+            simulate(root, state);
+        }
+
+        // 最も visit 数が多い手を返す
+        int best_N = -1;
+        std::string best_move;
+
+        for (auto &[usi, child] : root.children)
+        {
+            if (child->N > best_N)
+            {
+                best_N = child->N;
+                best_move = usi;
+            }
+        }
+
+        return best_move;
+    }
+
+    double MCTS::simulate(Node &node, State &state)
+    {
+        // 未展開
+        if (node.children.empty())
+        {
+            auto eval = evaluator_.evaluate(state);
+            auto legal = policy_.legal_usis(state.board);
+            auto probs = policy_.masked_policy(eval.policy_logits, legal);
 
             for (size_t i = 0; i < legal.size(); ++i)
             {
-                auto edge = std::make_unique<Edge>();
-                edge->usi = legal[i];
-                edge->prior = probs[i];
-
-                shogi::Board next = node->state.board;
-                next.applyUSI(legal[i]);
-
-                edge->child = std::make_unique<Node>(State(next));
-                node->edges[legal[i]] = std::move(edge);
+                auto child = std::make_unique<Node>();
+                child->P = probs[i];
+                node.children.emplace(legal[i], std::move(child));
             }
 
-            node->expanded = true;
+            node.N += 1;
             return eval.value;
         }
 
-        // select
-        Edge *best = nullptr;
+        // selection
+        Node *best = nullptr;
+        std::string best_usi;
         double best_score = -1e18;
 
-        for (auto &[_, e] : node->edges)
+        for (auto &[usi, child] : node.children)
         {
-            double U = cfg_.c_puct * e->prior *
-                       std::sqrt(node->visits + 1) / (1 + e->visits);
-            double score = e->Q() + U;
+            double U = c_puct * child->P *
+                       std::sqrt(node.N + 1) / (1 + child->N);
+            double score = child->Q + U;
+
             if (score > best_score)
             {
                 best_score = score;
-                best = e.get();
+                best = child.get();
+                best_usi = usi;
             }
         }
 
-        double value = -simulate(best->child.get());
+        state.apply(best_usi);
 
-        best->visits++;
-        best->value_sum += value;
-        node->visits++;
+        double value = -simulate(*best, state);
+
+        best->N += 1;
+        best->W += value;
+        best->Q = best->W / best->N;
 
         return value;
-    }
-
-    std::string MCTS::search(const shogi::Board &board)
-    {
-        Node root(State(board));
-
-        for (int i = 0; i < cfg_.simulations; ++i)
-            simulate(&root);
-
-        std::string best;
-        int best_v = -1;
-
-        for (auto &[usi, e] : root.edges)
-        {
-            if (e->visits > best_v)
-            {
-                best_v = e->visits;
-                best = usi;
-            }
-        }
-        return best;
     }
 
 } // namespace mcts
