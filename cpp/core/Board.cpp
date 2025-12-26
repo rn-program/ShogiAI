@@ -353,8 +353,7 @@ namespace shogi
             }
             else
             {
-                std::cerr << "玉が盤上に存在しません\n";
-                return false;
+                throw std::runtime_error("玉が盤上に存在しません");
             }
         }
 
