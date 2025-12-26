@@ -69,7 +69,7 @@ def self_play_policy_only(username: str, max_moves: int = 500):
             }
         )
 
-        print(f"Move played: {move_usi} (p={move_prob:.4f})")
+        print(f"Move played: {move_usi} (p={move_prob:.4f}) ply={ply}")
 
         ply += 1
 
@@ -167,7 +167,7 @@ def self_play_mcts(username: str, simulations: int = 1000, max_moves: int = 500)
             }
         )
 
-        print(f"Move played (MCTS): {move.usi()}")
+        print(f"Move played (MCTS): {move.usi()} ply={ply}")
 
         ply += 1
         if len(moves) >= max_moves:
