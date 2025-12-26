@@ -1,2 +1,0 @@
-// zobrist.hpp
-#pragma once
