@@ -15,4 +15,7 @@ struct Move
 
     std::string toKIF() const;
     std::string toUSI(Player turn) const;
+    PieceType pieceTypeFromChar() const;
 };
+
+PieceType pieceTypeFromChar(char c);

@@ -55,3 +55,28 @@ std::string Move::toUSI(Player turn) const
         return piece_usi + "*" + std::to_string(to_file) + rank_vector[to_rank - 1];
     }
 };
+
+PieceType pieceTypeFromChar(char c)
+{
+    char cl = std::tolower(c);
+
+    switch (cl)
+    {
+    case 'p':
+        return PieceType::Pawn;
+    case 'l':
+        return PieceType::Lance;
+    case 'n':
+        return PieceType::Knight;
+    case 's':
+        return PieceType::Silver;
+    case 'g':
+        return PieceType::Gold;
+    case 'b':
+        return PieceType::Bishop;
+    case 'r':
+        return PieceType::Rook;
+    default:
+        return PieceType::None;
+    }
+}
