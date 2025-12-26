@@ -103,14 +103,23 @@ def predict_best_move_mcts(
 ):
     """
     C++ (pybind11) 側の NN + MCTS を使って 1 手予測する
-    任意局面（SFEN）対応版
+    main.cpp の search() に完全対応
     """
 
-    move_usi = nc.predict_move(
-        project_root=PROJECT_ROOT, username=username, sfen=sfen, simulations=simulations
+    # C++ が期待する model_dir を組み立てる
+    model_dir = os.path.join(
+        PROJECT_ROOT,
+        "trained_models",
+        username,
     )
 
-    if move_usi is None:
+    move_usi = nc.search(
+        model_dir=model_dir,
+        sfen=sfen,
+        simulations=simulations,
+    )
+
+    if not move_usi:
         return None
 
     return shogi.Move.from_usi(move_usi)
@@ -155,3 +164,5 @@ if __name__ == "__main__":
         username=args.username,
         simulations=args.simulations,
     )
+
+    print("Predicted move (MCTS):", move.usi() if move else "None")
