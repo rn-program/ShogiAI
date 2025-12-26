@@ -53,7 +53,10 @@ namespace shogi
 
     bool Bitboard81::test(int sq) const noexcept
     {
-        // std::cout << "test sq: " << sq << std::endl;
+        if (!(0 <= sq && sq < NUM_SQ))
+        {
+            std::cout << "test sq: " << sq << "\n";
+        }
         assert(0 <= sq && sq < NUM_SQ);
         if (sq < 64)
             return (lo >> sq) & 1;
@@ -810,9 +813,30 @@ namespace shogi
         Move m;
         int base = (turn == Player::Sente ? 0 : 14);
 
-        if (usi.length() == 4 || usi.length() == 5)
+        // =====================
+        // 持ち駒打ち
+        // =====================
+        if (usi.size() == 4 && usi[1] == '*')
         {
-            // 駒移動
+            int toFile = '9' - usi[2];
+            int toRank = 'i' - usi[3];
+
+            m.from = -1; // 打ちは from 無効
+            m.to = toRank * 9 + toFile;
+            m.promote = false;
+
+            // 打つ駒
+            m.drop = pieceTypeFromChar(usi[0]);
+            m.piece = PieceType::None;
+
+            return m;
+        }
+
+        // =====================
+        // 通常の駒移動
+        // =====================
+        if (usi.size() == 4 || usi.size() == 5)
+        {
             int fromFile = '9' - usi[0];
             int fromRank = 'i' - usi[1];
             int toFile = '9' - usi[2];
@@ -821,7 +845,7 @@ namespace shogi
             m.from = fromRank * 9 + fromFile;
             m.to = toRank * 9 + toFile;
 
-            // 移動した駒の種類を特定
+            // 移動した駒の特定
             for (int i = 0; i < 14; i++)
             {
                 if (pieceBB[base + i].test(m.from))
@@ -831,77 +855,13 @@ namespace shogi
                 }
             }
 
-            // 成り判定
-            if (usi.length() == 5)
-            {
-                if (usi[4] == '+')
-                {
-                    m.promote = true;
-                }
-
-                else
-                {
-                    throw std::runtime_error("Invalid USI");
-                }
-            }
-            else
-            {
-                m.promote = false;
-            }
+            // 成り
+            m.promote = (usi.size() == 5 && usi[4] == '+');
             m.drop = PieceType::None;
-        }
-        else if (usi.length() == 3)
-        {
-            // 駒打ち
-            int toFile = usi[0] - '1';
-            int toRank = usi[1] - 'a';
-
-            m.from = -1;
-            m.to = toRank * 9 + toFile;
-
-            char pc = usi[2];
-            bool isSente = std::isupper(pc);
-            char cl = std::tolower(pc);
-
-            PieceType pt;
-
-            switch (cl)
-            {
-            case 'p':
-                pt = PieceType::Pawn;
-                break;
-            case 'l':
-                pt = PieceType::Lance;
-                break;
-            case 'n':
-                pt = PieceType::Knight;
-                break;
-            case 's':
-                pt = PieceType::Silver;
-                break;
-            case 'g':
-                pt = PieceType::Gold;
-                break;
-            case 'b':
-                pt = PieceType::Bishop;
-                break;
-            case 'r':
-                pt = PieceType::Rook;
-                break;
-            default:
-                throw std::runtime_error("Invalid USI");
-            }
-
-            m.piece = PieceType::None;
-            m.promote = false;
-            m.drop = pt;
-        }
-        else
-        {
-            throw std::runtime_error("Invalid USI");
+            return m;
         }
 
-        return m;
+        throw std::runtime_error("Invalid USI");
     }
 
     void Board::applyUSI(const std::string &usi)
