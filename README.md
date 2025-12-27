@@ -227,6 +227,8 @@ python ./kifu_viewer.py -- --kifu <棋譜ファイルパス>
 
 ※ kifu_viewer.pyは予測モデルが正常に動作しているかの確認用GUIであるため、デザインはかなり簡素なものになっています。
 
+※ まれに、C++側のMCTS探索コードのアップデートにより、NN の policy_logits の index と、C++ 側の move2idx_ / idx2move_ の対応が一致なくなり、正常に模倣対局が行われないときがあります。その時は、python側での再学習をお願いします。
+
 ---
 
 ## 開発の目的
