@@ -62,11 +62,6 @@ namespace mcts
                 temperature <= 0.0
                     ? static_cast<double>(child->N)
                     : std::pow(child->N, 1.0 / temperature));
-            std::cout << usi
-                      << " P=" << child->P
-                      << " N=" << child->N
-                      << " Q=" << child->Q
-                      << "\n";
         }
 
         // temperature = 0 の場合は最大 visit
