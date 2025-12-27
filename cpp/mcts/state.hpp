@@ -12,9 +12,16 @@ namespace mcts
         explicit State(const shogi::Board &board)
             : board(board) {}
 
-        void apply(const std::string &usi);
+        // Board は const なので、新しい State を返す
+        State apply(const std::string &usi) const;
 
-        shogi::Board board;
+        // 終端判定
+        bool is_terminal() const;
+
+        // 終端価値（手番視点）
+        double terminal_value() const;
+
+        const shogi::Board board;
     };
 
 } // namespace mcts
