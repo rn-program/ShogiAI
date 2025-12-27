@@ -369,7 +369,7 @@ namespace shogi
         return false;
     }
 
-    bool Board::isCheckMate()
+    bool Board::isCheckMate() const
     {
         return false;
     }

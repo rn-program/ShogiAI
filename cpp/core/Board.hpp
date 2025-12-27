@@ -73,7 +73,7 @@ namespace shogi
 
         bool isLegal() const;
         bool isCheck(Player p) const;
-        bool isCheckMate();
+        bool isCheckMate() const;
 
         std::vector<Move> generateMoves(Player turn) const;
         std::vector<Move> generateLegalMoves(Player turn) const;
