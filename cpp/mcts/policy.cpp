@@ -1,5 +1,7 @@
 #include "policy.hpp"
+#include <iostream>
 #include <cmath>
+#include <vector>
 
 namespace mcts
 {
@@ -24,22 +26,39 @@ namespace mcts
         const std::vector<double> &logits,
         const std::vector<std::string> &legal) const
     {
-
-        std::vector<double> probs(legal.size(), 1.0);
+        std::vector<double> probs(legal.size(), 0.0);
 
         double sum = 0.0;
         for (size_t i = 0; i < legal.size(); ++i)
         {
             auto it = move2idx_.find(legal[i]);
-            double p = (it == move2idx_.end())
-                           ? 1.0
-                           : std::exp(logits[it->second]);
-            probs[i] = p;
-            sum += p;
+            if (it == move2idx_.end())
+            {
+                probs[i] = 0.0; // 辞書に無い手は完全排除
+            }
+            else
+            {
+                double p = std::exp(logits[it->second]);
+                probs[i] = p;
+                sum += p;
+            }
         }
 
+        // ★ 重要：すべて 0 の場合のフォールバック
+        if (sum == 0.0)
+        {
+            // NN が何も知らない局面
+            // → 均等分布（合法手限定）
+            double uniform = 1.0 / legal.size();
+            for (double &p : probs)
+                p = uniform;
+            return probs;
+        }
+
+        // 正規化
         for (double &p : probs)
             p /= sum;
+
         return probs;
     }
 

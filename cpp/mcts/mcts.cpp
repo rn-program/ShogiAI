@@ -1,8 +1,11 @@
+
 #include "mcts.hpp"
 
 #include <algorithm>
 #include <cmath>
 #include <random>
+
+// child
 
 namespace mcts
 {
@@ -39,23 +42,38 @@ namespace mcts
         {
             State s = root_state;
             simulate(root, s);
-            add_dirichlet_noise(root);
         }
 
+        // 本探索
         for (int i = 0; i < simulations_; ++i)
         {
             State s = root_state;
             simulate(root, s);
         }
 
-        // temperature 付きサンプリング
+        // temperature 付き行動選択（visit 数ベース）
         std::vector<std::string> moves;
         std::vector<double> weights;
 
         for (auto &[usi, child] : root.children)
         {
             moves.push_back(usi);
-            weights.push_back(std::pow(child->N, 1.0 / temperature));
+            weights.push_back(
+                temperature <= 0.0
+                    ? static_cast<double>(child->N)
+                    : std::pow(child->N, 1.0 / temperature));
+            std::cout << usi
+                      << " P=" << child->P
+                      << " N=" << child->N
+                      << " Q=" << child->Q
+                      << "\n";
+        }
+
+        // temperature = 0 の場合は最大 visit
+        if (temperature <= 0.0)
+        {
+            auto it = std::max_element(weights.begin(), weights.end());
+            return moves[std::distance(weights.begin(), it)];
         }
 
         std::discrete_distribution<> dist(weights.begin(), weights.end());
@@ -70,14 +88,10 @@ namespace mcts
         // 終端
         if (state.is_terminal())
         {
-            double v = state.terminal_value();
-            node.N += 1;
-            node.W += v;
-            node.Q = node.W / node.N;
-            return v;
+            return state.terminal_value();
         }
 
-        // 未展開
+        // 未展開ノード：展開のみ行い、統計は更新しない
         if (node.children.empty())
         {
             auto eval = evaluator_.evaluate(state);
@@ -86,10 +100,15 @@ namespace mcts
 
             for (size_t i = 0; i < legal.size(); ++i)
             {
+                if (probs[i] <= 0.0)
+                    continue; // ★ policy に無い手はノード自体作らない
+
                 auto child = std::make_unique<Node>();
                 child->P = probs[i];
                 node.children.emplace(legal[i], std::move(child));
             }
+
+            assert(!node.children.empty());
 
             node.N += 1;
             node.W += eval.value;
@@ -106,7 +125,8 @@ namespace mcts
         {
             double U =
                 c_puct_ * child->P *
-                std::sqrt(node.N + 1.0) / (1.0 + child->N);
+                std::sqrt(static_cast<double>(node.N) + 1.0) /
+                (1.0 + static_cast<double>(child->N));
 
             double score = child->Q + U;
             if (score > best_score)
@@ -117,9 +137,13 @@ namespace mcts
             }
         }
 
-        state.apply(best_usi);
-        double value = -simulate(*best, state);
+        // 1 手進める
+        State next = state.apply(best_usi);
 
+        // 再帰（手番反転）
+        double value = -simulate(*best, next);
+
+        // Backup（ここだけで統計更新）
         best->N += 1;
         best->W += value;
         best->Q = best->W / best->N;
@@ -136,6 +160,9 @@ namespace mcts
     // -----------------------
     void MCTS::add_dirichlet_noise(Node &root)
     {
+        if (root.children.empty())
+            return;
+
         std::gamma_distribution<double> gamma(dirichlet_alpha_, 1.0);
 
         std::vector<double> noise;

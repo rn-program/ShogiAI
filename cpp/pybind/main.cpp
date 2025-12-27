@@ -75,7 +75,7 @@ std::string search_move(
     // =======================
     // 探索
     // =======================
-    return mcts.search(root_state, 1.0);
+    return mcts.search(root_state, 0.0);
 }
 
 // =======================
