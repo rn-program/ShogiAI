@@ -12,9 +12,7 @@ def self_play_policy_only(username: str, max_moves: int = 500):
     moves = []
 
     timestamp = time.strftime("%Y%m%d_%H%M%S")
-
     base_dir = f"self_play_logs/{username}/{timestamp}"
-    os.makedirs(base_dir, exist_ok=True)
 
     settings = {
         "mode": "policy_only",
@@ -79,6 +77,8 @@ def self_play_policy_only(username: str, max_moves: int = 500):
     # ======================
     # JSON 保存
     # ======================
+    os.makedirs(base_dir, exist_ok=True)
+
     played_path = os.path.join(base_dir, f"played_moves_{timestamp}.json")
     policy_path = os.path.join(base_dir, f"policy_outputs_{timestamp}.json")
 
@@ -110,7 +110,6 @@ def self_play_mcts(username: str, simulations: int = 1000, max_moves: int = 500)
 
     timestamp = time.strftime("%Y%m%d_%H%M%S")
     base_dir = f"self_play_logs/{username}/{timestamp}MCTS"
-    os.makedirs(base_dir, exist_ok=True)
 
     settings = {
         "mode": "mcts",
@@ -176,6 +175,8 @@ def self_play_mcts(username: str, simulations: int = 1000, max_moves: int = 500)
     # ======================
     # JSON 保存
     # ======================
+    os.makedirs(base_dir, exist_ok=True)
+
     played_path = os.path.join(base_dir, f"played_moves_{timestamp}.json")
     policy_path = os.path.join(base_dir, f"policy_outputs_{timestamp}.json")
 
