@@ -84,10 +84,13 @@ class ShogiDataset(Dataset):
                     board = shogi.Board(sfen)
                     ply = board.move_number
 
-                    x = board_to_tensor(board, ply)
+                    x = board_to_tensor(board, ply)  # shape: (43, 9, 9)
                     if not isinstance(x, torch.Tensor):
                         x = torch.from_numpy(x)
-                    x = x.unsqueeze(0).to(self.device)
+                    x = x.to(self.device)
+
+                    # 確認用
+                    assert x.shape[0] == 43, x.shape
 
                     mask = legal_moves_mask(board, move2idx)
                     if not isinstance(mask, torch.Tensor):
