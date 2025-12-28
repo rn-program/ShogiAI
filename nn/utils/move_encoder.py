@@ -1,10 +1,9 @@
-import pickle
-import os
 import torch
 
 
 def load_move_dicts(path):
     import pickle
+
     with open(path, "rb") as f:
         obj = pickle.load(f)
 
@@ -12,7 +11,6 @@ def load_move_dicts(path):
     print("[DEBUG] content keys:", obj.keys() if isinstance(obj, dict) else obj)
 
     return obj["move2idx"], obj["idx2move"]
-
 
 
 # -----------------------------------
