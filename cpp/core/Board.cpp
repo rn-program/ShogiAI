@@ -1,4 +1,4 @@
-#include "Board.hpp"
+#include "core/Board.hpp"
 
 #include <cassert>
 #include <sstream>

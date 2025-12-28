@@ -1,5 +1,5 @@
-#include "evaluator.hpp"
-#include "../nn/nn_encoder.hpp"
+#include "mcts/evaluator.hpp"
+#include "nn/nn_encoder.hpp"
 #include <vector>
 
 namespace mcts

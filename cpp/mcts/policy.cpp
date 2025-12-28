@@ -1,4 +1,5 @@
-#include "policy.hpp"
+#include "mcts/policy.hpp"
+
 #include <iostream>
 #include <cmath>
 #include <vector>

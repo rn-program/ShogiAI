@@ -1,11 +1,11 @@
-#include "Move.hpp"
+#include "core/Move.hpp"
 
 #include <iostream>
 #include <cctype>
 #include <vector>
 
-#include "Piece.hpp"
-#include "Player.hpp"
+#include "core/Board.hpp"
+#include "core/Player.hpp"
 
 std::string Move::toKIF() const
 {

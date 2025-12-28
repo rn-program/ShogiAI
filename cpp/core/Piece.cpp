@@ -1,4 +1,4 @@
-#include "Piece.hpp"
+#include "core/Piece.hpp"
 
 #include <iostream>
 

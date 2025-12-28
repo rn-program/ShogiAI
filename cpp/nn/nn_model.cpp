@@ -1,4 +1,4 @@
-#include "nn_model.hpp"
+#include "nn/nn_model.hpp"
 #include <iostream>
 
 NNModel::NNModel(const std::string &model_path, torch::Device device)

@@ -11,7 +11,6 @@
 #include "nn/nn_model.hpp"
 
 #include "mcts/mcts.hpp"
-#include "mcts/state.hpp"
 #include "mcts/policy.hpp"
 #include "mcts/evaluator.hpp"
 

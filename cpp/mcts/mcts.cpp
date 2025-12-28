@@ -1,4 +1,4 @@
-#include "mcts.hpp"
+#include "mcts/mcts.hpp"
 
 #include <algorithm>
 #include <cmath>

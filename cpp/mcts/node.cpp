@@ -1,5 +1,5 @@
 // node.cpp
-#include "node.hpp"
+#include "mcts/node.hpp"
 
 namespace mcts
 {
