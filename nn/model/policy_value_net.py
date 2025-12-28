@@ -2,6 +2,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+from nn.utils.board_encoder import INPUT_CHANNELS
+
 
 class ResidualBlock(nn.Module):
     def __init__(self, ch):
@@ -18,7 +20,7 @@ class ResidualBlock(nn.Module):
 
 
 class ShogiPolicyValueNet(nn.Module):
-    def __init__(self, num_moves, in_channels=29, channels=128, blocks=5):
+    def __init__(self, num_moves, in_channels=INPUT_CHANNELS, channels=128, blocks=5):
         super().__init__()
 
         # ---- 共通 trunk ----

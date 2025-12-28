@@ -12,8 +12,7 @@ import shogi.CSA
 from train.train_dataset import ShogiDataset
 from nn.model.policy_value_net import ShogiPolicyValueNet
 
-
-INPUT_CHANNELS = 29  # board_to_tensor と必ず一致させる
+from nn.utils.board_encoder import INPUT_CHANNELS
 
 
 def export_move_dicts_txt(save_dir, idx2move):
