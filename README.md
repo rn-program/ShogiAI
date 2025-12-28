@@ -260,7 +260,7 @@ python ./kifu_viewer.py -- --kifu <棋譜ファイルパス>
 
 ## バージョン情報
 
-- Version: 0.1.0
+- Version: 0.1.3
 - Status: 開発中(experimental)
 
 ---
