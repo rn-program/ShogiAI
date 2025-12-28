@@ -4,9 +4,9 @@ import sys
 import torch
 import pickle
 
-from model.policy_value_net import ShogiPolicyValueNet
-from utils.board_encoder import board_to_tensor
-from utils.move_encoder import legal_moves_mask
+from nn.model.policy_value_net import ShogiPolicyValueNet
+from nn.utils.board_encoder import board_to_tensor
+from nn.utils.move_encoder import legal_moves_mask
 
 import shogi
 

@@ -4,8 +4,8 @@ import shogi.CSA
 import torch
 from torch.utils.data import Dataset
 
-from utils.board_encoder import board_to_tensor
-from utils.move_encoder import legal_moves_mask
+from nn.utils.board_encoder import board_to_tensor
+from nn.utils.move_encoder import legal_moves_mask
 
 
 class ShogiDataset(Dataset):

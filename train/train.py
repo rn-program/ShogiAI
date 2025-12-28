@@ -10,7 +10,7 @@ import shogi
 import shogi.CSA
 
 from train.train_dataset import ShogiDataset
-from model.policy_value_net import ShogiPolicyValueNet
+from nn.model.policy_value_net import ShogiPolicyValueNet
 
 
 INPUT_CHANNELS = 29  # board_to_tensor と必ず一致させる
