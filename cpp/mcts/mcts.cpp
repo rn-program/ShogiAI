@@ -1,11 +1,8 @@
-
 #include "mcts.hpp"
 
 #include <algorithm>
 #include <cmath>
 #include <random>
-
-// child
 
 namespace mcts
 {
