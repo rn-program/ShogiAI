@@ -37,7 +37,6 @@
 
 - Python 3.10（Python3.10 をベースに開発を進行中）
 - C++17 以上 (MCTS探索)
-- Node.js (ShogiHome実行用)
 - OS: Linux / Windows（WSL 推奨）
 - GPU: 非対応（学習に時間を要すため、将来的に対応させる予定）
 
@@ -105,12 +104,7 @@ python getCSA.py --username <プレーヤー名>
 ### 2. 学習
 
 ```bash
-python -m train.train \
---username <プレーヤー名> \
---epochs <学習回数> \
---batch-size <一学習での処理局面数> \
---lr <学習率> \
---value-weight <valueの重み>
+python -m train.train --username <プレーヤー名> --epochs <学習回数> --batch-size <一学習での処理局面数> --lr <学習率> --value-weight <valueの重み>
 ```
 
 実行後、以下のディレクトリが自動生成されます。
@@ -264,16 +258,6 @@ python ./kifu_viewer.py -- --kifu <棋譜ファイルパス>
 - PyTorch
 - python-shogi
 - CppShogi
-
----
-
-## GUIについて
-
-本プロジェクトのGUIは、  
-**ShogiHome**（Copyright (c) 2022 Kubo Ryosuke）をベースに改変・拡張したものです。
-
-ShogiHome は MIT License のもとで公開されており、  
-本リポジトリにもそのライセンス条文を含めています。
 
 ---
 
