@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from nn.utils.board_encoder import INPUT_CHANNELS
+from nn.encoder.board_encoder import INPUT_CHANNELS
 
 
 class ResidualBlock(nn.Module):
