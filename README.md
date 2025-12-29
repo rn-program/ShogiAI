@@ -36,19 +36,19 @@
 ## 動作環境
 
 - Python 3.10（Python3.10 をベースに開発を進行中）
-- C++17 以上
+- C++17 以上 (MCTS探索)
+- Node.js (ShogiHome実行用)
 - OS: Linux / Windows（WSL 推奨）
 - GPU: 非対応（学習に時間を要すため、将来的に対応させる予定）
 
-### 必要ライブラリのインストール
-
 ---
+
+### 必要ライブラリのインストール
 
 python ライブラリ：
 
 ```bash
-pip install -r requirements.txt \
-  --index-url https://download.pytorch.org/whl/cpu
+pip install -r requirements.txt --index-url https://download.pytorch.org/whl/cpu
 ```
 
 ※PyTorch のインストールは現状、CPUバージョンのみ対応しています。
@@ -198,6 +198,15 @@ AI の手番は 0 で先手、1 で後手を表します。
 
 実行すると、自動で対局用将棋盤 GUI が開きます。
 
+※ 将来的にShogiHomeに対局用GUIなどを移行する予定です
+
+ShogiHome：
+
+```bash
+cd shogihome
+npm run electron:serve
+```
+
 ---
 
 #### AI 自己対局
@@ -255,6 +264,16 @@ python ./kifu_viewer.py -- --kifu <棋譜ファイルパス>
 - PyTorch
 - python-shogi
 - CppShogi
+
+---
+
+## GUIについて
+
+本プロジェクトのGUIは、  
+**ShogiHome**（Copyright (c) 2022 Kubo Ryosuke）をベースに改変・拡張したものです。
+
+ShogiHome は MIT License のもとで公開されており、  
+本リポジトリにもそのライセンス条文を含めています。
 
 ---
 
