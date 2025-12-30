@@ -21,6 +21,14 @@ namespace mcts
         // 終端価値（手番視点）
         double terminal_value() const;
 
+        // ===============================
+        // SFEN 取得（Board に委譲）
+        // ===============================
+        std::string toSfen() const
+        {
+            return board.toSfen();
+        }
+
         const shogi::Board board;
     };
 
