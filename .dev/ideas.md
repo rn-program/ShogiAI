@@ -22,3 +22,7 @@
 ### 具体的な方針
 
 * train/train.pyから Value-Network 学習を削除し、C++側のMCTS探索側でValueを取得するコードを追加
+
+## YaneuraOuエンジンのビルド方法について
+
+* 将来的に、usi-eval-wrapper内に公開予定
