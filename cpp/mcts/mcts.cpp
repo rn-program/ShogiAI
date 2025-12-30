@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cmath>
 #include <random>
+#include <cassert>
 
 namespace mcts
 {
@@ -29,26 +30,29 @@ namespace mcts
     }
 
     // -----------------------
-    // 探索エントリ（学習用）
+    // 探索エントリ
     // -----------------------
     std::string MCTS::search(const State &root_state, double temperature)
     {
         Node root;
 
-        // root を一度展開
+        // ---- root を 1 回展開 ----
         {
             State s = root_state;
             simulate(root, s);
         }
 
-        // 本探索
+        // ---- root に Dirichlet noise ----
+        add_dirichlet_noise(root);
+
+        // ---- 本探索 ----
         for (int i = 0; i < simulations_; ++i)
         {
             State s = root_state;
             simulate(root, s);
         }
 
-        // temperature 付き行動選択（visit 数ベース）
+        // ---- visit 数ベースで手を選択 ----
         std::vector<std::string> moves;
         std::vector<double> weights;
 
@@ -61,7 +65,7 @@ namespace mcts
                     : std::pow(child->N, 1.0 / temperature));
         }
 
-        // temperature = 0 の場合は最大 visit
+        // temperature = 0 → 最大 visit
         if (temperature <= 0.0)
         {
             auto it = std::max_element(weights.begin(), weights.end());
@@ -77,23 +81,27 @@ namespace mcts
     // -----------------------
     double MCTS::simulate(Node &node, State &state)
     {
-        // 終端
+        // ---- 終端 ----
         if (state.is_terminal())
         {
+            // 終端 value は「現在手番視点」
             return state.terminal_value();
         }
 
-        // 未展開ノード：展開のみ行い、統計は更新しない
+        // ---- 未展開ノード ----
         if (node.children.empty())
         {
+            // policy : NN
+            // value  : やねうら王(nn.bin)
             auto eval = evaluator_.evaluate(state);
+
             auto legal = policy_.legal_usis(state.board);
             auto probs = policy_.masked_policy(eval.policy_logits, legal);
 
             for (size_t i = 0; i < legal.size(); ++i)
             {
                 if (probs[i] <= 0.0)
-                    continue; // ★ policy に無い手はノード自体作らない
+                    continue;
 
                 auto child = std::make_unique<Node>();
                 child->P = probs[i];
@@ -102,13 +110,15 @@ namespace mcts
 
             assert(!node.children.empty());
 
+            // value は「この手番の評価」なのでそのまま backup
             node.N += 1;
             node.W += eval.value;
             node.Q = node.W / node.N;
+
             return eval.value;
         }
 
-        // Selection (PUCT)
+        // ---- Selection (PUCT) ----
         Node *best = nullptr;
         std::string best_usi;
         double best_score = -1e18;
@@ -129,13 +139,13 @@ namespace mcts
             }
         }
 
-        // 1 手進める
+        // ---- 1 手進める ----
         State next = state.apply(best_usi);
 
-        // 再帰（手番反転）
+        // ---- 再帰（手番反転）----
         double value = -simulate(*best, next);
 
-        // Backup（ここだけで統計更新）
+        // ---- Backup ----
         best->N += 1;
         best->W += value;
         best->Q = best->W / best->N;
