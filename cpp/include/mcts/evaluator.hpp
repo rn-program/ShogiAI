@@ -10,7 +10,7 @@
 #include "state.hpp"
 
 // YaneuraOu (USI wrapper)
-#include "YaneuraOu.hpp"
+#include "YaneuraOu/YaneuraOu.hpp"
 
 namespace mcts
 {
