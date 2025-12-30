@@ -33,6 +33,8 @@ std::string search_move(
         (fs::path(model_dir) / "policy_net.ts").string(),
         torch::kCPU);
 
+    std::string engine = "path/to/engine"; // ここにエンジンパスを記述
+
     // =======================
     // move_dicts 読み込み
     // =======================
@@ -64,7 +66,7 @@ std::string search_move(
     // =======================
     mcts::State root_state(board);
     mcts::Policy policy(idx2move, move2idx);
-    mcts::Evaluator evaluator(nn);
+    mcts::Evaluator evaluator(nn, engine, true);
 
     mcts::MCTS mcts(
         policy,
