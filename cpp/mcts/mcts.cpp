@@ -3,52 +3,63 @@
 #include <algorithm>
 #include <cmath>
 #include <random>
+#include <cassert>
 
 namespace mcts
 {
-
     static std::mt19937 rng(std::random_device{}());
 
-    // -----------------------
-    // コンストラクタ
-    // -----------------------
     MCTS::MCTS(
         Policy &policy,
         Evaluator &evaluator,
         int simulations,
         double c_puct,
         double dirichlet_alpha,
-        double dirichlet_eps)
+        double dirichlet_eps,
+        YaneuraOuEngine *engine)
         : policy_(policy),
           evaluator_(evaluator),
           simulations_(simulations),
           c_puct_(c_puct),
           dirichlet_alpha_(dirichlet_alpha),
-          dirichlet_eps_(dirichlet_eps)
+          dirichlet_eps_(dirichlet_eps),
+          engine_(engine)
     {
     }
 
-    // -----------------------
-    // 探索エントリ（学習用）
-    // -----------------------
     std::string MCTS::search(const State &root_state, double temperature)
     {
         Node root;
 
-        // root を一度展開
+        State s = root_state;
+        auto eval = evaluator_.evaluate(s);
+
+        // engine がある場合は NN value と比較
+        if (engine_)
         {
-            State s = root_state;
-            simulate(root, s);
+            double engine_value = engine_->evaluatePosition(s.toSfen());
+            if (std::abs(eval.value - engine_value) > 0.8)
+            {
+                // root prior 補正
+                auto legal = policy_.legal_usis(s.board);
+                for (const auto &usi : legal)
+                {
+                    auto child = std::make_unique<Node>();
+                    child->P = 0.7 * engine_value + 0.3 * eval.value;
+                    root.children.emplace(usi, std::move(child));
+                }
+            }
         }
 
-        // 本探索
+        simulate(root, s);
+        add_dirichlet_noise(root);
+
         for (int i = 0; i < simulations_; ++i)
         {
             State s = root_state;
             simulate(root, s);
         }
 
-        // temperature 付き行動選択（visit 数ベース）
         std::vector<std::string> moves;
         std::vector<double> weights;
 
@@ -61,7 +72,6 @@ namespace mcts
                     : std::pow(child->N, 1.0 / temperature));
         }
 
-        // temperature = 0 の場合は最大 visit
         if (temperature <= 0.0)
         {
             auto it = std::max_element(weights.begin(), weights.end());
@@ -72,18 +82,13 @@ namespace mcts
         return moves[dist(rng)];
     }
 
-    // -----------------------
-    // 再帰シミュレーション
-    // -----------------------
     double MCTS::simulate(Node &node, State &state)
     {
-        // 終端
         if (state.is_terminal())
         {
             return state.terminal_value();
         }
 
-        // 未展開ノード：展開のみ行い、統計は更新しない
         if (node.children.empty())
         {
             auto eval = evaluator_.evaluate(state);
@@ -93,8 +98,7 @@ namespace mcts
             for (size_t i = 0; i < legal.size(); ++i)
             {
                 if (probs[i] <= 0.0)
-                    continue; // ★ policy に無い手はノード自体作らない
-
+                    continue;
                 auto child = std::make_unique<Node>();
                 child->P = probs[i];
                 node.children.emplace(legal[i], std::move(child));
@@ -108,17 +112,15 @@ namespace mcts
             return eval.value;
         }
 
-        // Selection (PUCT)
         Node *best = nullptr;
         std::string best_usi;
         double best_score = -1e18;
 
         for (auto &[usi, child] : node.children)
         {
-            double U =
-                c_puct_ * child->P *
-                std::sqrt(static_cast<double>(node.N) + 1.0) /
-                (1.0 + static_cast<double>(child->N));
+            double U = c_puct_ * child->P *
+                       std::sqrt(static_cast<double>(node.N) + 1.0) /
+                       (1.0 + static_cast<double>(child->N));
 
             double score = child->Q + U;
             if (score > best_score)
@@ -129,13 +131,9 @@ namespace mcts
             }
         }
 
-        // 1 手進める
         State next = state.apply(best_usi);
-
-        // 再帰（手番反転）
         double value = -simulate(*best, next);
 
-        // Backup（ここだけで統計更新）
         best->N += 1;
         best->W += value;
         best->Q = best->W / best->N;
@@ -147,9 +145,6 @@ namespace mcts
         return value;
     }
 
-    // -----------------------
-    // Dirichlet noise（root専用）
-    // -----------------------
     void MCTS::add_dirichlet_noise(Node &root)
     {
         if (root.children.empty())
@@ -171,9 +166,7 @@ namespace mcts
         for (auto &[_, child] : root.children)
         {
             double eta = noise[i++] / sum;
-            child->P =
-                (1.0 - dirichlet_eps_) * child->P +
-                dirichlet_eps_ * eta;
+            child->P = (1.0 - dirichlet_eps_) * child->P + dirichlet_eps_ * eta;
         }
     }
 

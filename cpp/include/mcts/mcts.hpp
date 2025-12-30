@@ -8,10 +8,10 @@
 #include "evaluator.hpp"
 #include "state.hpp"
 #include "node.hpp"
+#include "YaneuraOu/YaneuraOu.hpp"
 
 namespace mcts
 {
-
     class MCTS
     {
     public:
@@ -21,9 +21,9 @@ namespace mcts
             int simulations,
             double c_puct = 1.5,
             double dirichlet_alpha = 0.3,
-            double dirichlet_eps = 0.25);
+            double dirichlet_eps = 0.25,
+            YaneuraOuEngine *engine = nullptr);
 
-        // temperature を指定（学習用）
         std::string search(const State &root_state, double temperature);
 
     private:
@@ -37,6 +37,7 @@ namespace mcts
         double c_puct_;
         double dirichlet_alpha_;
         double dirichlet_eps_;
-    };
 
+        YaneuraOuEngine *engine_; // ここにエンジンを保持
+    };
 } // namespace mcts
