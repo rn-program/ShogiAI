@@ -610,7 +610,6 @@ namespace shogi
     std::vector<Move> Board::generateMoves(Player turn) const
     {
         std::vector<Move> moves;
-        Bitboard81 occ = occupied();
         bool senteTurn = (turn == Player::Sente);
         int base = senteTurn ? 0 : 14;
 
@@ -863,7 +862,7 @@ namespace shogi
                         continue;
                 }
 
-                moves.push_back(Move{-1, sq, PieceType::None, false, pt});
+                moves.push_back(Move{-1, sq, PieceType::None, false, pt, PieceType::None});
             }
         }
 
