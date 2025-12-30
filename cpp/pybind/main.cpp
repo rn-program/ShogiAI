@@ -30,7 +30,7 @@ std::string search_move(
     // NN 読み込み
     // =======================
     NNModel nn(
-        (fs::path(model_dir) / "policy_value.ts").string(),
+        (fs::path(model_dir) / "policy_net.ts").string(),
         torch::kCPU);
 
     // =======================

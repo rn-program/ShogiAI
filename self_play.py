@@ -29,7 +29,7 @@ def self_play_policy_only(username: str, max_moves: int = 500):
     while not board.is_game_over():
         _, top_moves = predict.predict_best_move_policy_only(
             sfen=board.sfen(),
-            model_path=f"trained_models/{username}/policy_value.pth",
+            model_path=f"trained_models/{username}/policy_net.pth",
             move_dict_path=f"trained_models/{username}/move_dicts.pkl",
             topk=5,
         )
@@ -130,7 +130,7 @@ def self_play_mcts(username: str, simulations: int = 1000, max_moves: int = 500)
         # ----------------------
         _, top_moves = predict.predict_best_move_policy_only(
             sfen=board.sfen(),
-            model_path=f"trained_models/{username}/policy_value.pth",
+            model_path=f"trained_models/{username}/policy_net.pth",
             move_dict_path=f"trained_models/{username}/move_dicts.pkl",
             topk=5,
         )

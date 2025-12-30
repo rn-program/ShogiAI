@@ -1,6 +1,5 @@
 import os
 import sys
-
 import torch
 import pickle
 
@@ -21,6 +20,9 @@ sys.path.insert(0, CPP_PYBIND_BUILD)
 import nukocat_cpp as nc
 
 
+# ==================================================
+# Policy-only 推論（MCTS なし）
+# ==================================================
 def predict_best_move_policy_only(
     sfen: str,
     model_path: str,
@@ -29,7 +31,7 @@ def predict_best_move_policy_only(
     topk: int = 5,
 ):
     """
-    MCTSなし・policy networkのみで指し手を予測
+    policy network のみで指し手を予測
     上位 topk 手と確率を返す
     """
 
@@ -57,14 +59,12 @@ def predict_best_move_policy_only(
     ply = board.move_number
 
     x = board_to_tensor(board, ply)
-
     if not isinstance(x, torch.Tensor):
         x = torch.from_numpy(x)
 
     x = x.unsqueeze(0).to(device)
 
     legal_mask = legal_moves_mask(board, move2idx)
-
     if not isinstance(legal_mask, torch.Tensor):
         legal_mask = torch.from_numpy(legal_mask)
 
@@ -76,8 +76,8 @@ def predict_best_move_policy_only(
     with torch.no_grad():
         policy_logits, _ = model(x)
 
-        # 非合法手を強制的に除外
-        policy_logits = policy_logits.masked_fill(legal_mask == 0, -1e9)
+        # 非合法手を完全除外
+        policy_logits = policy_logits.masked_fill(~legal_mask, -1e9)
 
         probs = torch.softmax(policy_logits, dim=1)[0].cpu().numpy()
 
@@ -85,7 +85,7 @@ def predict_best_move_policy_only(
     # 上位手抽出
     # --------------------
     ranked = sorted(
-        [(idx2move[i], float(probs[i])) for i in range(len(probs)) if probs[i] > 0],
+        [(idx2move[i], float(probs[i])) for i in range(len(probs))],
         key=lambda x: x[1],
         reverse=True,
     )
@@ -96,17 +96,19 @@ def predict_best_move_policy_only(
     return best_move, top_moves
 
 
+# ==================================================
+# C++ (pybind11) 側 MCTS 推論
+# ==================================================
 def predict_best_move_mcts(
     sfen: str,
     username: str,
     simulations: int = 1000,
 ):
     """
-    C++ (pybind11) 側の NN + MCTS を使って 1 手予測する
-    main.cpp の search() に完全対応
+    C++ 側 NN + MCTS を使って 1 手予測
+    nukocat_cpp.search() に対応
     """
 
-    # C++ が期待する model_dir を組み立てる
     model_dir = os.path.join(
         PROJECT_ROOT,
         "trained_models",
@@ -138,7 +140,7 @@ if __name__ == "__main__":
     parser.add_argument("--topk", type=int, default=5)
     args = parser.parse_args()
 
-    model_path = f"trained_models/{args.username}/policy_value.pth"
+    model_path = f"trained_models/{args.username}/policy_net.pth"
     move_dict_path = f"trained_models/{args.username}/move_dicts.pkl"
 
     # 初期局面 or 指定局面
