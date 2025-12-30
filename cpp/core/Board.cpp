@@ -284,6 +284,239 @@ namespace shogi
         moveNumber = p.moveNumber;
     }
 
+    std::string Board::toSfen() const
+    {
+        std::stringstream ss;
+
+        // ===============================
+        // 盤面
+        // ===============================
+        for (int rank = 8; rank >= 0; --rank)
+        {
+            int empty = 0;
+
+            for (int file = 0; file < 9; ++file)
+            {
+                int sq = rank * 9 + file;
+                bool found = false;
+
+                for (int i = 0; i < 28; ++i)
+                {
+                    if (pieceBB[i].test(sq))
+                    {
+                        if (empty > 0)
+                        {
+                            ss << empty;
+                            empty = 0;
+                        }
+
+                        bool sente = (i < 14);
+                        PieceType pt = pieceTypeFromInt(sente ? i : i - 14);
+
+                        // 補助関数: 成駒かどうか判定
+                        bool promoted =
+                            (pt == PieceType::ProPawn ||
+                             pt == PieceType::ProLance ||
+                             pt == PieceType::ProKnight ||
+                             pt == PieceType::ProSilver ||
+                             pt == PieceType::Horse ||
+                             pt == PieceType::Dragon);
+
+                        if (promoted)
+                            ss << '+';
+
+                        // 補助関数: PieceType → SFEN文字
+                        char c = '?';
+                        switch (pt)
+                        {
+                        case PieceType::Pawn:
+                            c = 'p';
+                            break;
+                        case PieceType::Lance:
+                            c = 'l';
+                            break;
+                        case PieceType::Knight:
+                            c = 'n';
+                            break;
+                        case PieceType::Silver:
+                            c = 's';
+                            break;
+                        case PieceType::Gold:
+                            c = 'g';
+                            break;
+                        case PieceType::Bishop:
+                            c = 'b';
+                            break;
+                        case PieceType::Rook:
+                            c = 'r';
+                            break;
+                        case PieceType::King:
+                            c = 'k';
+                            break;
+                        case PieceType::ProPawn:
+                            c = 'p';
+                            break;
+                        case PieceType::ProLance:
+                            c = 'l';
+                            break;
+                        case PieceType::ProKnight:
+                            c = 'n';
+                            break;
+                        case PieceType::ProSilver:
+                            c = 's';
+                            break;
+                        case PieceType::Horse:
+                            c = 'b';
+                            break;
+                        case PieceType::Dragon:
+                            c = 'r';
+                            break;
+                        default:
+                            break;
+                        }
+
+                        if (sente)
+                            ss << char(std::toupper(c));
+                        else
+                            ss << c;
+
+                        found = true;
+                        break;
+                    }
+                }
+
+                if (!found)
+                    ++empty;
+            }
+
+            if (empty > 0)
+                ss << empty;
+
+            if (rank != 0)
+                ss << '/';
+        }
+
+        // ===============================
+        // 手番
+        // ===============================
+        ss << ' ';
+        ss << (turn == Player::Sente ? 'b' : 'w');
+        ss << ' ';
+
+        // ===============================
+        // 持ち駒
+        // ===============================
+        bool hasHand = false;
+
+        // SFEN順
+        const PieceType order[] = {
+            PieceType::Rook,
+            PieceType::Bishop,
+            PieceType::Gold,
+            PieceType::Silver,
+            PieceType::Knight,
+            PieceType::Lance,
+            PieceType::Pawn};
+
+        for (PieceType pt : order)
+        {
+            int c = 0;
+            auto it = senteHand.find(pt);
+            if (it != senteHand.end())
+                c = it->second;
+
+            if (c > 0)
+            {
+                hasHand = true;
+                if (c > 1)
+                    ss << c;
+
+                char pc = '?';
+                switch (pt)
+                {
+                case PieceType::Pawn:
+                    pc = 'P';
+                    break;
+                case PieceType::Lance:
+                    pc = 'L';
+                    break;
+                case PieceType::Knight:
+                    pc = 'N';
+                    break;
+                case PieceType::Silver:
+                    pc = 'S';
+                    break;
+                case PieceType::Gold:
+                    pc = 'G';
+                    break;
+                case PieceType::Bishop:
+                    pc = 'B';
+                    break;
+                case PieceType::Rook:
+                    pc = 'R';
+                    break;
+                default:
+                    break;
+                }
+                ss << pc;
+            }
+        }
+
+        for (PieceType pt : order)
+        {
+            int c = 0;
+            auto it = goteHand.find(pt);
+            if (it != goteHand.end())
+                c = it->second;
+
+            if (c > 0)
+            {
+                hasHand = true;
+                if (c > 1)
+                    ss << c;
+
+                char pc = '?';
+                switch (pt)
+                {
+                case PieceType::Pawn:
+                    pc = 'p';
+                    break;
+                case PieceType::Lance:
+                    pc = 'l';
+                    break;
+                case PieceType::Knight:
+                    pc = 'n';
+                    break;
+                case PieceType::Silver:
+                    pc = 's';
+                    break;
+                case PieceType::Gold:
+                    pc = 'g';
+                    break;
+                case PieceType::Bishop:
+                    pc = 'b';
+                    break;
+                case PieceType::Rook:
+                    pc = 'r';
+                    break;
+                default:
+                    break;
+                }
+                ss << pc;
+            }
+        }
+
+        if (!hasHand)
+            ss << '-';
+
+        // ===============================
+        // 手数
+        // ===============================
+        ss << ' ' << moveNumber;
+
+        return ss.str();
+    }
+
     Bitboard81 Board::occupied() const noexcept
     {
         Bitboard81 out;

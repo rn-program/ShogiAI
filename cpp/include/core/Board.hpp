@@ -57,8 +57,10 @@ namespace shogi
         Board();
 
         void reset() noexcept;
+
         void setInitialPosition();
         void setPositionFromSFEN(const std::string &sfen);
+        std::string toSfen() const; 
 
         Bitboard81 occupied() const noexcept;
         bool pieceAt(int sq) const noexcept;
