@@ -21,4 +21,4 @@
 
 ### 具体的な方針
 
-* train/train.pyから Value-Network 学習を削除
+* train/train.pyから Value-Network 学習を削除し、C++側のMCTS探索側でValueを取得するコードを追加
