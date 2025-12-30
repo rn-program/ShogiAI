@@ -10,9 +10,9 @@ from nn.encoder.move_encoder import legal_moves_mask
 
 class ShogiDataset(Dataset):
     """
-    TD(0) Dataset（実用版）
-    - value_label = - V(s_{t+1})
-    - 終局のみ真の勝敗を使用
+    Policy-only Dataset（棋譜模倣）
+    - 自分の手番のみを学習
+    - value は一切使用しない
     """
 
     def __init__(
@@ -63,11 +63,10 @@ class ShogiDataset(Dataset):
                 elif white_name == myname:
                     learn_side = shogi.WHITE
                 else:
-                    continue  # 無関係な棋譜は除外（TDでは重要）
+                    continue
 
                 board = shogi.Board()
 
-                # 自分の手番の局面を保存
                 positions = []
                 moves = []
 
@@ -84,29 +83,22 @@ class ShogiDataset(Dataset):
                     board = shogi.Board(sfen)
                     ply = board.move_number
 
-                    x = board_to_tensor(board, ply)  # shape: (43, 9, 9)
+                    x = board_to_tensor(board, ply)
                     if not isinstance(x, torch.Tensor):
                         x = torch.from_numpy(x)
                     x = x.to(self.device)
 
-                    # 確認用
                     assert x.shape[0] == 43, x.shape
 
                     mask = legal_moves_mask(board, move2idx)
                     if not isinstance(mask, torch.Tensor):
                         mask = torch.from_numpy(mask)
-                    mask = mask.unsqueeze(0)
 
                     policy_idx = move2idx.get(move)
                     if policy_idx is None:
                         continue
 
-                    value_label = 1.0 - 0.001 * ply
-
-                    self.samples.append(
-                        (x.squeeze(0), mask.squeeze(0), policy_idx, value_label)
-                    )
-
+                    self.samples.append((x, mask, policy_idx))
                     total_samples += 1
 
         print(f"  games parsed : {total_games}")

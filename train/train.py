@@ -88,54 +88,38 @@ def train_loop(args):
     )
 
     # =======================
-    # Training loop
+    # Training loop（policy のみ）
     # =======================
     for epoch in range(args.epochs):
         model.train()
-
         policy_loss_sum = 0.0
-        value_loss_sum = 0.0
 
-        for step, (x, mask, policy_y, value_y) in enumerate(dataloader):
+        for step, (x, mask, policy_y) in enumerate(dataloader):
             x = x.to(device)
             mask = mask.to(device)
             policy_y = policy_y.to(device)
-            value_y = value_y.to(device).float()
 
-            policy_logits, value_pred = model(x)
+            policy_logits, _ = model(x)
 
             # 合法手マスク
             policy_logits = policy_logits.masked_fill(~mask, -1e9)
 
-            # policy loss
             log_probs = F.log_softmax(policy_logits, dim=1)
             policy_loss = F.nll_loss(log_probs, policy_y)
 
-            # value loss（棋風局面分布）
-            value_loss = F.mse_loss(value_pred.squeeze(), value_y)
-
-            # 合成 loss
-            loss = policy_loss + args.value_weight * value_loss
-
             optimizer.zero_grad()
-            loss.backward()
+            policy_loss.backward()
             optimizer.step()
 
             policy_loss_sum += policy_loss.item()
-            value_loss_sum += value_loss.item()
 
             if step % 50 == 0:
                 print(
-                    f"[Epoch {epoch+1}] step={step} "
-                    f"policy={policy_loss.item():.4f} "
-                    f"value_mean={value_pred.mean().item():.4f} "
-                    f"value_std={value_pred.std().item():.4f}"
+                    f"[Epoch {epoch+1}] step={step} " f"policy={policy_loss.item():.4f}"
                 )
 
         print(
-            f"[Epoch {epoch+1} DONE] "
-            f"Policy={policy_loss_sum/len(dataloader):.4f} "
-            f"Value={value_loss_sum/len(dataloader):.4f}"
+            f"[Epoch {epoch+1} DONE] " f"Policy={policy_loss_sum/len(dataloader):.4f}"
         )
 
     # =======================
@@ -144,7 +128,7 @@ def train_loop(args):
     save_dir = os.path.join("trained_models", args.username)
     os.makedirs(save_dir, exist_ok=True)
 
-    model_path = os.path.join(save_dir, "policy_value.pth")
+    model_path = os.path.join(save_dir, "policy_net.pth")
     torch.save(model.state_dict(), model_path)
 
     with open(os.path.join(save_dir, "move_dicts.pkl"), "wb") as f:
@@ -167,7 +151,7 @@ def train_loop(args):
     example_input = torch.randn(1, INPUT_CHANNELS, 9, 9)
     scripted_model = torch.jit.trace(model_cpu, example_input)
 
-    ts_path = os.path.join(save_dir, "policy_value.ts")
+    ts_path = os.path.join(save_dir, "policy_net.ts")
     scripted_model.save(ts_path)
 
     print(f"[INFO] TorchScript saved: {ts_path}")
@@ -189,9 +173,6 @@ if __name__ == "__main__":
     parser.add_argument("--epochs", type=int, default=10)
     parser.add_argument("--batch-size", type=int, default=32)
     parser.add_argument("--lr", type=float, default=1e-3)
-
-    # ★重要：policy を壊さない現実的な重み
-    parser.add_argument("--value-weight", type=float, default=0.1)
 
     args = parser.parse_args()
     train_loop(args)
