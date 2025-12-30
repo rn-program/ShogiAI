@@ -30,9 +30,3 @@ trained_models/
 # ------------------------------
 self_play_logs/
 
-# ------------------------------
-# YaneuraOuエンジン関連
-# ------------------------------
-YaneuraOu/
-YaneuraOu.cpp
-YaneuraOu.hpp
