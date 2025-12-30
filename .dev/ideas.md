@@ -16,5 +16,9 @@
 
 ### 改良案
 
-* 学習棋譜データに、棋風関係なく極端な悪手を相手が指した場合の対応を教え込む。
-* YaneuraOuエンジンの評価関数(nn.bin)を棋力に合わせて調節して学習
+* policy-valueをYaneuraOu/eval/nn.binを使用する予定 (現在のは水匠5)
+→ YaneuraOuの深さ1で設定する
+
+### 具体的な方針
+
+* train/train.pyから Value-Network 学習を削除
