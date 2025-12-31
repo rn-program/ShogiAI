@@ -1,7 +1,6 @@
 #pragma once
 
 #include <vector>
-#include <string>
 
 // NN
 #include "nn/nn_model.hpp"
@@ -9,8 +8,8 @@
 // State
 #include "state.hpp"
 
-// YaneuraOu (USI wrapper)
-#include "YaneuraOu/YaneuraOu.hpp"
+// YaneuraOu Engine
+#include "YaneuraOu/YaneuraOuEngine.hpp"
 
 namespace mcts
 {
@@ -30,16 +29,18 @@ namespace mcts
     class Evaluator
     {
     public:
-        // nn      : policy 用 NN
-        // engine  : やねうら王の実行ファイルパス
-        Evaluator(NNModel &nn, const std::string &engine, bool debug_startup);
+        // nn     : policy 用 NN
+        // engine : 起動済みのやねうら王エンジン（共有）
+        Evaluator(
+            NNModel &nn,
+            YaneuraOuEngine &engine);
 
         // State を評価して policy + value を返す
         EvalResult evaluate(const State &state);
 
     private:
         NNModel &nn_;
-        YaneuraOuValue yaneura_;
+        YaneuraOuEngine &engine_; // 所有しない（参照）
     };
 
 } // namespace mcts

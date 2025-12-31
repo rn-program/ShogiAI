@@ -2,19 +2,16 @@
 #include "nn/nn_encoder.hpp"
 
 #include <algorithm>
-#include <cerrno>
-#include <cstring>
 
 namespace mcts
 {
 
     Evaluator::Evaluator(
         NNModel &nn,
-        const std::string &engine, 
-        bool debug_startup
-    )
+        YaneuraOuEngine &engine // ← 参照で受け取る
+        )
         : nn_(nn),
-          yaneura_(engine, debug_startup)
+          engine_(engine)
     {
     }
 
@@ -36,17 +33,12 @@ namespace mcts
         }
 
         // -----------------------
-        // value : やねうら王(nn.bin)
+        // value : やねうら王 (nn.bin)
         // -----------------------
-        // SFEN 生成
         std::string sfen = state.toSfen();
 
-        // cp 取得（手番側有利）
+        int cp = engine_.evaluate(sfen);
 
-        int cp = yaneura_.evaluate(sfen);
-
-        // [-1, 1] に正規化
-        // 1000cp ≒ 勝ち確、-1000cp ≒ 負け確
         constexpr double SCALE = 1000.0;
         double v = static_cast<double>(cp) / SCALE;
         result.value = std::clamp(v, -1.0, 1.0);
